@@ -1,5 +1,6 @@
 import { CharacterStats } from '../db';
 import { ENGLISH_BIGRAMS, ENGLISH_TRIGRAMS } from '../config/dictionaries';
+import { INITIAL_UNLOCKED_CHARS } from '../config/layouts';
 import { splitGraphemes } from './graphemes';
 
 type Language = 'english' | 'bangla';
@@ -108,10 +109,14 @@ export const generateAdaptiveText = (
   language: Language,
   wordCount: number = 20
 ): string => {
-  const unlockedChars = characterStats
+  let unlockedChars = characterStats
     .filter(stat => stat.isUnlocked)
     .map(stat => stat.character);
   
+  if (unlockedChars.length === 0) {
+    unlockedChars = INITIAL_UNLOCKED_CHARS[language] || [];
+  }
+
   if (unlockedChars.length === 0) {
     return '';
   }

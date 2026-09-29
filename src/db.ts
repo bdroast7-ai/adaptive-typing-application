@@ -94,7 +94,9 @@ export const updateCharacterStats = async (
 
 export const getUnlockedCharacters = async (language: string) => {
   return await db.characterStats
-    .where({ language, isUnlocked: 1 })
+    .where('language')
+    .equals(language)
+    .filter(stat => stat.isUnlocked)
     .toArray();
 };
 
@@ -133,15 +135,24 @@ export const exportData = async () => {
 };
 
 export const importData = async (data: any) => {
+  if (!data || typeof data !== 'object') {
+    throw new Error('Invalid import data format');
+  }
+
+  const stripId = <T extends { id?: number }>(item: T): Omit<T, 'id'> => {
+    const { id, ...rest } = item;
+    return rest;
+  };
+
   await db.transaction('rw', db.sessions, db.keystrokes, db.characterStats, async () => {
-    if (data.sessions) {
-      await db.sessions.bulkAdd(data.sessions);
+    if (Array.isArray(data.sessions)) {
+      await db.sessions.bulkAdd(data.sessions.map(stripId));
     }
-    if (data.keystrokes) {
-      await db.keystrokes.bulkAdd(data.keystrokes);
+    if (Array.isArray(data.keystrokes)) {
+      await db.keystrokes.bulkAdd(data.keystrokes.map(stripId));
     }
-    if (data.characterStats) {
-      await db.characterStats.bulkAdd(data.characterStats);
+    if (Array.isArray(data.characterStats)) {
+      await db.characterStats.bulkAdd(data.characterStats.map(stripId));
     }
   });
 };
