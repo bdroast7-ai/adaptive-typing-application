@@ -1,0 +1,13 @@
+@import "tailwindcss";
+
+/* Better text rendering for all languages */
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Ensure proper font rendering for Bangla */
+[lang="bn"],
+.bangla-text {
+  font-family: 'Kalpurush', 'SolaimanLipi', 'Noto Sans Bengali', sans-serif;
+}
