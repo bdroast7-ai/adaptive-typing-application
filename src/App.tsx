@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { Keyboard, Trophy, Activity, Target, Settings, Download, Upload, Volume2, VolumeX } from 'lucide-react';
-import { db, saveSession, unlockCharacter, exportData, importData, clearAllData } from './db';
-import { useTypingEngine } from './hooks/useTypingEngine';
+import { db, saveSession, saveKeystroke, unlockCharacter, exportData, importData, clearAllData } from './db';
+import { useTypingEngine, CompletionStats } from './hooks/useTypingEngine';
 import { TypingCanvas } from './components/TypingCanvas';
 import VirtualKeyboard from './components/VirtualKeyboard';
 import { generateAdaptiveText, shouldUnlockNewChar, getNextCharToUnlock } from './utils/textGenerator';
@@ -16,7 +16,6 @@ export default function App() {
   const [strictMode, setStrictMode] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [audioEnabled, setAudioEnabled] = useState(true);
-  const [sessionId, setSessionId] = useState<number>();
   const [targetText, setTargetText] = useState('');
   const [showComplete, setShowComplete] = useState(false);
   const [activeKeys, setActiveKeys] = useState<Set<string>>(new Set());
@@ -83,24 +82,18 @@ export default function App() {
   }, [characterStats, language]);
 
   const generateNewTest = useCallback(async () => {
-    if (!characterStats) return;
-
-    const text = generateAdaptiveText(characterStats, language, 20);
+    const text = generateAdaptiveText(characterStats || [], language, 20);
     setTargetText(text);
     setShowComplete(false);
-    setSessionId(undefined);
   }, [characterStats, language]);
 
   useEffect(() => {
-    if (characterStats && characterStats.length > 0) {
-      generateNewTest();
-    }
-  }, [characterStats, generateNewTest]);
+    generateNewTest();
+  }, [generateNewTest]);
 
-  const handleComplete = useCallback(async (finalStats: any) => {
+  const handleComplete = useCallback(async (finalStats: CompletionStats) => {
     setShowComplete(true);
-    // Create and save the session ONLY when the test finishes
-    await saveSession({
+    const newSessionId = await saveSession({
       date: Date.now(),
       wpm: finalStats.wpm,
       accuracy: finalStats.accuracy,
@@ -108,13 +101,25 @@ export default function App() {
       duration: finalStats.elapsedTime,
       totalKeystrokes: finalStats.totalKeystrokes
     });
+
+    if (newSessionId && finalStats.keystrokes) {
+      for (const ks of finalStats.keystrokes) {
+        await saveKeystroke({
+          sessionId: newSessionId,
+          expectedChar: ks.expectedChar,
+          typedChar: ks.typedChar,
+          latencyMs: ks.latencyMs,
+          isError: ks.isError,
+          timestamp: ks.timestamp
+        });
+      }
+    }
   }, [language]);
 
   const typingEngine = useTypingEngine({
     targetText,
     language,
     strictMode,
-    sessionId,
     onComplete: handleComplete
   });
 
@@ -170,13 +175,18 @@ export default function App() {
         return next;
       });
     };
+    const handleBlur = () => {
+      setActiveKeys(new Set());
+    };
     
     window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('keyup', handleKeyUp);
+    window.addEventListener('blur', handleBlur);
     
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
+      window.removeEventListener('blur', handleBlur);
     };
   }, []);
 
