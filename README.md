@@ -1,113 +1,57 @@
-# Adaptive Typing Practice Application
+# ⌨️ Adaptive Typing Engine (Bangla & English)
 
-A responsive, AI-powered typing tutor inspired by keybr.com that helps users improve their typing speed and accuracy with full support for both English and Bangla (বাংলা) languages.
+![Project Banner](https://via.placeholder.com/1000x300?text=Adaptive+Typing+Application+-+Add+Your+Banner+Here)
 
-## Features
+[![Live Demo](https://img.shields.io/badge/Live_Demo-Play_Now-000000?style=for-the-badge&logo=vercel)](https://adaptive-typing-application.vercel.app/)
+[![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](#)
+[![Vite](https://img.shields.io/badge/Vite-B73BFE?style=for-the-badge&logo=vite&logoColor=FFD62E)](#)
+[![Tailwind](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](#)
 
-### 🎯 Adaptive Learning (AI Mentor)
-- Tracks character-level accuracy across all typing sessions
-- Identifies weak keys based on historical performance
-- Dynamically generates practice text targeting your weakest characters
-- Shows personalized feedback messages to guide your practice
+A high-performance, offline-first typing application featuring a custom-built state machine designed to seamlessly handle native Bangla (Bijoy) IME composition and English input. 
 
-### 📊 Real-time Metrics
-- **WPM (Words Per Minute)**: Live calculation based on correctly typed characters
-- **Accuracy**: Percentage of correct keystrokes
-- **Time Tracking**: Elapsed time display with precision timing
+## ✨ Features
 
-### ⌨️ Interactive Virtual Keyboard
-- **English**: QWERTY keyboard layout
-- **Bangla**: Full Bijoy keyboard layout (বিজয় কীবোর্ড)
-- Shows physical key mappings below Bangla characters
-- Highlights the next expected key to press with pulsing animation
-- Shows currently pressed keys in real-time
-- Marks weak keys with special highlighting
+* **Native Bijoy Support:** Engineered to handle complex Bangla graphemes and IME input sequences without breaking state synchronization.
+* **Custom State Machine:** Completely decoupled text generation and keystroke validation to prevent reactive rendering loops.
+* **Offline-First Architecture:** Uses IndexedDB (via Dexie.js) to persistently store user statistics, WPM history, and accuracy metrics locally.
+* **Strict Accuracy Mode:** Enforces backspace-disabled, 100% accuracy typing tests for hardcore practice.
+* **Millisecond Precision:** Calculates WPM and accuracy using high-resolution timestamps rather than standard interval timers.
 
-### 🌍 Multi-language Support
-- **English**: Standard English word dictionary with 80+ words
-- **Bangla**: Native Bangla word dictionary with 100+ words (বাংলা শব্দ)
-- Proper grapheme handling using Intl.Segmenter for complex Bangla conjuncts
-- Bijoy keyboard layout for authentic Bangla typing experience
-- Easy language toggle with flag indicators (🇺🇸/🇧🇩)
+## 🛠️ Tech Stack
 
-### 💾 Progress Tracking
-- Saves your typing history to browser localStorage
-- Stores character-level statistics for adaptive learning
-- Displays recent test results with date, WPM, and accuracy
-- Maintains up to 20 recent tests
+* **Frontend:** React, TypeScript, Tailwind CSS
+* **Build Tool:** Vite
+* **State Management:** Custom React Hooks (`useTypingEngine`)
+* **Local Storage:** Dexie.js (IndexedDB)
+* **Icons:** Lucide React
 
-### 🎨 Modern UI/UX (Like keybr.com)
-- Dark-themed glassmorphism design with gradient backgrounds
-- Fully responsive for desktop and mobile
-- Smooth animations and transitions
-- **Proper text wrapping** - Characters wrap naturally within the typing box
-- Color-coded character feedback (green for correct, red for errors)
-- Pulsing cursor indicator showing current position
-- Professional typography with proper Bangla font rendering (Kalpurush, SolaimanLipi, Noto Sans Bengali)
+## 🚀 Live Demo
 
-## Technology Stack
+Try the application directly in your browser without any installation:
+**[Test Your Typing Speed Here](https://adaptive-typing-application.vercel.app/)**
 
-- **React** - Functional components with Hooks
-- **TypeScript** - Type-safe development
-- **Tailwind CSS** - Utility-first styling
-- **Lucide React** - Beautiful icon library
-- **Vite** - Fast build tool and dev server
+## 💻 Local Installation
 
-## Key Implementation Details
+To run this project locally on your machine:
 
-### Grapheme Handling
-Uses `Intl.Segmenter` API to properly split complex scripts like Bangla into visible grapheme clusters, ensuring accurate character counting and display for conjuncts and vowel modifiers.
+1. Clone the repository:
+   ```bash
+   git clone [https://github.com/bdroast7-ai/adaptive-typing-application.git](https://github.com/bdroast7-ai/adaptive-typing-application.git)
+Navigate to the project directory:
 
-### Mobile Support
-Implements a hidden input field approach to trigger native mobile keyboards and IME (Input Method Editor) support, making the app fully functional on touch devices.
+Bash
+cd adaptive-typing-application
+Install dependencies:
 
-### Adaptive Algorithm
-1. Analyzes your character statistics (minimum 5 attempts per character)
-2. Identifies the 4 characters with the lowest accuracy
-3. Filters the word dictionary for words containing these weak characters
-4. Generates practice text mixing targeted words (every 3rd word) with random words
-
-### WPM Calculation
-Follows the standard typing convention: `(Correct Characters / 5) / Time in Minutes`
-- 5 characters = 1 word
-- Only counts correctly typed characters
-- Updates in real-time during typing
-
-## Getting Started
-
-```bash
-# Install dependencies
+Bash
 npm install
+Start the development server:
 
-# Run development server
+Bash
 npm run dev
+🧠 The Engineering Challenge
+Handling the Bijoy layout in a React environment posed a unique challenge: native IME (Input Method Editor) composition often fires multiple synthetic events that can desync standard React state.
 
-# Build for production
-npm run build
-```
+This project solves that by shifting the validation logic away from raw onChange events and implementing a static state transition model. It captures the exact millisecond a test finishes to prevent race conditions while ensuring that partial Bangla characters do not trigger false-positive error states.
 
-## Usage
-
-1. **Choose Language**: Click the language toggle button to switch between English and Bangla
-2. **Start Typing**: Click on the typing area and begin typing the displayed text
-3. **Watch Metrics**: Monitor your WPM and accuracy in real-time
-4. **Complete Test**: Finish typing all words to see your final results
-5. **Next Test**: Click "Next Test" to generate new adaptive text based on your performance
-
-## Adaptive Learning Flow
-
-1. **Initial Tests**: Practice with random words to establish baseline statistics
-2. **Analysis**: After 5+ attempts per character, the system identifies weak keys
-3. **Targeted Practice**: New tests focus on words containing your weak characters
-4. **Continuous Improvement**: Statistics update after every character typed
-5. **Progress Tracking**: View your improvement over time in the history section
-
-## Browser Compatibility
-
-- Modern browsers with ES6+ support
-- Intl.Segmenter API for optimal Bangla support (falls back to basic split for older browsers)
-- localStorage for data persistence
-
-## License
-
-MIT License - Feel free to use and modify for your own projects!
+Built by Mohammad Sheikh Riyasat Kibriya
