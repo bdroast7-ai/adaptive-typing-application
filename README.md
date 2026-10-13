@@ -1,6 +1,6 @@
 # ⌨️ Adaptive Typing Engine (Bangla & English)
 
-![Project Banner](https://via.placeholder.com/1000x300?text=Adaptive+Typing+Application+-+Add+Your+Banner+Here)
+![Project Banner](./banner.png)
 
 [![Live Demo](https://img.shields.io/badge/Live_Demo-Play_Now-000000?style=for-the-badge&logo=vercel)](https://adaptive-typing-application.vercel.app/)
 [![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](#)
