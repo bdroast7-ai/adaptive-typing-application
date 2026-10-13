@@ -1,5 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { splitGraphemes } from '../utils/graphemes';
+import React, { useEffect, useRef } from 'react';
 
 interface TypingCanvasProps {
   targetGraphemes: string[];
@@ -7,8 +6,8 @@ interface TypingCanvasProps {
   errors: Map<number, string>;
   status: 'idle' | 'typing' | 'finished';
   language: string;
-  onKeyPress: (key: string) => void;
-  onBackspace: () => void;
+  typedValue: string;
+  onInput: (value: string) => void;
   strictMode: boolean;
 }
 
@@ -18,32 +17,23 @@ export const TypingCanvas: React.FC<TypingCanvasProps> = ({
   errors,
   status,
   language,
-  onKeyPress,
-  onBackspace,
+  typedValue,
+  onInput,
   strictMode
 }) => {
   const inputRef = useRef<HTMLInputElement>(null);
-  const [inputValue, setInputValue] = useState('');
 
   useEffect(() => {
-    if (status === 'idle') setInputValue('');
-    inputRef.current?.focus();
+    const focusInput = () => {
+      if (status !== 'finished') {
+        inputRef.current?.focus();
+      }
+    };
+
+    focusInput();
+    window.addEventListener('focus', focusInput);
+    return () => window.removeEventListener('focus', focusInput);
   }, [status]);
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (status === 'finished') return;
-    const val = e.target.value;
-
-    if (val.length < inputValue.length) {
-      if (!strictMode) onBackspace();
-    } else if (val.length > inputValue.length) {
-      const newChars = val.slice(inputValue.length);
-      const graphemes = splitGraphemes(newChars);
-      graphemes.forEach(g => onKeyPress(g));
-    }
-
-    setInputValue(val);
-  };
 
   return (
     <div
@@ -55,32 +45,40 @@ export const TypingCanvas: React.FC<TypingCanvasProps> = ({
           : 'monospace'
       }}
     >
-      <input
+      {/* Input allows native IME composition (crucial for Bangla) */}
+      <input 
         ref={inputRef}
         type="text"
-        className="absolute inset-0 opacity-0"
-        value={inputValue}
-        onChange={handleChange}
+        className="absolute inset-0 opacity-0 cursor-default"
+        value={typedValue}
+        onChange={(e) => onInput(e.target.value)}
         autoComplete="off"
+        autoCorrect="off"
+        autoCapitalize="none"
         spellCheck="false"
+        data-gramm="false"
       />
 
       <div className="text-3xl leading-relaxed select-none">
         {targetGraphemes.map((char, i) => {
           let className = 'transition-colors duration-100 inline-block ';
-
+          
           if (i < cursorIndex) {
             if (errors.has(i)) {
-              className += 'text-white bg-red-500 rounded px-0.5';
+              // Wrong key pressed -> looks a little off (red text + underline)
+              className += 'text-red-500 bg-red-50 rounded border-b-2 border-red-200';
             } else {
+              // Correct -> Black
               className += 'text-[#1A1A1A]';
             }
           } else if (i === cursorIndex) {
+            // Active Cursor
             className += 'bg-[#F5F5F5] border-l-2 border-[#2563EB]';
           } else {
+            // Future Text
             className += 'text-[#A3A3A3]';
           }
-
+          
           return (
             <span key={i} className={className}>
               {char === ' ' ? '\u00A0' : char}
@@ -91,7 +89,7 @@ export const TypingCanvas: React.FC<TypingCanvasProps> = ({
 
       {status === 'idle' && (
         <div className="absolute bottom-4 left-0 right-0 text-center text-[#737373] text-sm">
-          Start typing to begin... {strictMode && '(Strict Mode: No backspace)'}
+          Start typing to begin... {strictMode && '(Strict Mode ON)'}
         </div>
       )}
     </div>

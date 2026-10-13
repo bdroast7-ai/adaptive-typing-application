@@ -37,6 +37,18 @@ export default function App() {
     audioFeedback.initialize().catch(console.error);
   }, []);
 
+  const generateNewTest = useCallback(async () => {
+    // Fetch stats statically from DB instead of using the live query
+    const currentStats = await db.characterStats.where('language').equals(language).toArray();
+    if (!currentStats || currentStats.length === 0) return;
+
+    const text = generateAdaptiveText(currentStats, language, 20);
+    setTargetText(text);
+    setShowComplete(false);
+
+    // Note: Do not save the session here! Save it in handleComplete when the test finishes.
+  }, [language]);
+
   // Initialize unlocked characters on language change
   useEffect(() => {
     const initUnlockedChars = async () => {
@@ -49,10 +61,13 @@ export default function App() {
           await unlockCharacter(char, language);
         }
       }
+      
+      // Generate the text once initialization is done
+      generateNewTest();
     };
 
     initUnlockedChars();
-  }, [language]);
+  }, [language, generateNewTest]);
 
   // Check for character unlock opportunities
   useEffect(() => {
@@ -81,21 +96,6 @@ export default function App() {
 
     checkUnlock();
   }, [characterStats, language]);
-
-  const generateNewTest = useCallback(async () => {
-    if (!characterStats) return;
-
-    const text = generateAdaptiveText(characterStats, language, 20);
-    setTargetText(text);
-    setShowComplete(false);
-    setSessionId(undefined);
-  }, [characterStats, language]);
-
-  useEffect(() => {
-    if (characterStats && characterStats.length > 0) {
-      generateNewTest();
-    }
-  }, [characterStats, generateNewTest]);
 
   const handleComplete = useCallback(async (finalStats: any) => {
     setShowComplete(true);
@@ -317,8 +317,8 @@ export default function App() {
             errors={typingEngine.errors}
             status={typingEngine.status}
             language={language}
-            onKeyPress={typingEngine.handleKeyPress}
-            onBackspace={typingEngine.handleBackspace}
+            typedValue={typingEngine.typedValue}
+            onInput={typingEngine.handleInput}
             strictMode={strictMode}
           />
 
