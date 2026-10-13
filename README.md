@@ -36,7 +36,7 @@ To run this project locally on your machine:
 
 1. Clone the repository:
    ```bash
-   git clone [https://github.com/bdroast7-ai/adaptive-typing-application.git](https://github.com/bdroast7-ai/adaptive-typing-application.git)
+   git clone (https://github.com/bdroast7-ai/adaptive-typing-application.git)
 Navigate to the project directory:
 
 Bash
